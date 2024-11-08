@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from models import get_db
 from models.users import Users
-from schemas.users import UserResponse, UserCreate, Token, TokenData
+from schemas.users import UserCreate, Token, TokenData
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
 from jose import JWTError, jwt
@@ -11,12 +11,25 @@ import os
 router = APIRouter(prefix="", tags=["Users"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@router.post("/users", response_model=UserResponse)
+@router.post("/users", response_model=Token)
 async def register_users(user: UserCreate, session: Session = Depends(get_db)):
+    # Check if username already exists
     db_user = Users.find(session=session, username=user.username)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    return Users.create(session, user)
+    
+    # Create a new user
+    new_user = Users.create(session, user)
+    
+    # Generate JWT token for the new user
+    access_token_expires = timedelta(minutes=int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 60)))
+    access_token = Users.create_access_token(
+        data={"sub": new_user.username, "user_id": new_user.id}, expires_delta=access_token_expires
+    )
+    
+    # Return token and username
+    return {"access_token": access_token, "token_type": "bearer", "username": new_user.username}
+
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(formdata: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_db)):
@@ -31,7 +44,7 @@ async def login_for_access_token(formdata: OAuth2PasswordRequestForm = Depends()
     access_token = Users.create_access_token(
         data={"sub": user.username, "user_id": user.id}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "username": user.username}
 
 @router.get("/me", response_model=TokenData)
 async def fetch_me(token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)):
@@ -53,4 +66,18 @@ async def fetch_me(token: str = Depends(oauth2_scheme), session: Session = Depen
     if user is None:
         raise credentials_exception
     
-    return user
+    return {
+        "username": user.username,
+        "total_points": user.total_points
+    }
+
+
+@router.put("/update-bank-details")
+async def update_bank_details(bank_name: str, account_number: str, ifsc_code: str, branch_name: str, account_type: str, token: str = Depends(oauth2_scheme), session: Session = Depends(get_db),):
+    return Users.update_bank_details(session, token, bank_name, account_number, ifsc_code, branch_name, account_type)
+
+
+@router.get("/bank-details")
+async def get_bank_details(token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)):
+    return Users.get_bank_details(session, token)
+

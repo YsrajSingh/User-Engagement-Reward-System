@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from middleware import JWTMiddleware
-from endpoints import users
+from endpoints import users, points
 from fastapi.openapi.utils import get_openapi
 
 
@@ -27,6 +27,7 @@ app.add_middleware(
 
 api_routers = [
     users.router,
+    points.router,
 ]
 
 for router in api_routers:
