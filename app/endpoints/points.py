@@ -38,9 +38,11 @@ async def get_points(
     db: Session = Depends(get_db),
     limit: int = Query(10, ge=1),  # default to 10, minimum 1
     offset: int = Query(0, ge=0),  # default to 0, minimum 0
+    current_user: Users = Depends(get_current_user)
 ):
     # Querying the Points table with limit and offset
-    points_query: Query = db.query(Points).offset(offset).limit(limit)
+    points_query: Query = db.query(Points)
+    points_query = points_query.filter(Points.user_id == current_user.id).offset(offset).limit(limit)
     # Get total count for pagination
     total_count = db.query(func.count(Points.id)).scalar()
 
