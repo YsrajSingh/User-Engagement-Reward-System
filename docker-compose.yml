@@ -16,39 +16,39 @@ services:
             - ./app/.venv:/app/.venv
         env_file:
             - .env
-        depends_on:
-            - postgres # Ensures fastapi-app waits for the postgres service to be ready
+        # depends_on:
+        #     - postgres # Ensures fastapi-app waits for the postgres service to be ready
 
-    pgadmin:
-        image: dpage/pgadmin4:latest
-        container_name: pgadmin
-        restart: unless-stopped
-        ports:
-            - "5050:5050"  # pgAdmin web interface port
-        environment:
-            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-            PGADMIN_LISTEN_PORT: 5050
-            PGADMIN_CONFIG_SERVER_MODE: 'False'
-            PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
-            PGADMIN_ENABLE_PASSWORD_RECOVERY: 'True'
-        volumes:
-            - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
-        depends_on:
-            - postgres # Ensure pgadmin waits for postgres to be ready
+    # pgadmin:
+    #     image: dpage/pgadmin4:latest
+    #     container_name: pgadmin
+    #     restart: unless-stopped
+    #     ports:
+    #         - "5050:5050"  # pgAdmin web interface port
+    #     environment:
+    #         PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+    #         PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    #         PGADMIN_LISTEN_PORT: 5050
+    #         PGADMIN_CONFIG_SERVER_MODE: 'False'
+    #         PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    #         PGADMIN_ENABLE_PASSWORD_RECOVERY: 'True'
+    #     volumes:
+    #         - ./docker/pgadmin/servers.json:/pgadmin4/servers.json
+    #     depends_on:
+    #         - postgres # Ensure pgadmin waits for postgres to be ready
 
-    postgres:
-        image: postgres:latest
-        container_name: postgres
-        restart: unless-stopped
-        environment:
-            POSTGRES_DB: ${POSTGRES_DB}         # Define your database name in .env
-            POSTGRES_USER: ${POSTGRES_USER}     # Define your user in .env
-            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Define your password in .env
-        ports:
-            - "5432:5432" # PostgreSQL port
-        volumes:
-            - postgres_data:/var/lib/postgresql/data # Persistent storage
+    # postgres:
+    #     image: postgres:latest
+    #     container_name: postgres
+    #     restart: unless-stopped
+    #     environment:
+    #         POSTGRES_DB: ${POSTGRES_DB}         # Define your database name in .env
+    #         POSTGRES_USER: ${POSTGRES_USER}     # Define your user in .env
+    #         POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Define your password in .env
+    #     ports:
+    #         - "5432:5432" # PostgreSQL port
+    #     volumes:
+    #         - postgres_data:/var/lib/postgresql/data # Persistent storage
 
-volumes:
-    postgres_data:
+# volumes:
+#     postgres_data:
